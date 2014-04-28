@@ -1,0 +1,770 @@
+//
+//  main.cpp
+//  Blackjack Game
+//
+//  Created by Luke Minniear on 4/21/14.
+//  Copyright (c) 2014 Team Juggernaut!. All rights reserved.
+//
+
+
+//#include "stdafx.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+//#define scanf scanf_s
+
+int blackjackStart(int playerBank);
+void startDraw(int betAmount, int playerBank);
+int draw(int betAmount, int playerBank, int startScore, int split);
+void dealerDraw(int betAmount, int playerBank, int score);
+void winning(int betAmount, int playerBank, int score, int dealerScore);
+int split1(int suit, int cardValue, int betAmount, int playerBank, int score);
+int split2(int suit, int cardValue, int betAmount, int playerBank, int score);
+void splitDealerDraw(int betAmount, int playerBank, int score);
+int cardDraw(int score, int x, int y);
+
+int main()
+{
+    
+    char answer;
+    int playerBank = 100;
+    
+    printf("Welcome to Blackjack! Would you like to begin? (Y,N): ");
+    scanf(" %c", &answer);
+    fflush(NULL);
+    
+    if (answer == 'Y' || answer == 'y')
+    {
+        blackjackStart(playerBank);
+    }
+    else if (answer == 'N' || answer == 'n')
+    {
+        printf("\nToo bad! The dealer waits for no man!");
+        blackjackStart(playerBank);
+    }
+    else
+    {
+        printf("A simple Y or N would do...\n\n");
+        return main();
+    }
+    
+    return 0;
+}
+
+int blackjackStart(int playerBank)
+{
+    int betAmount;
+    char answer;
+    
+    if (playerBank > 0)
+    {
+        printf("\n\nYou have $%i.", playerBank);
+        printf("\nPlace your bet: ");
+        scanf(" %i", &betAmount);
+        fflush(NULL);
+        
+        if (betAmount > playerBank)
+        {
+            printf("\nDoes this look like a bank? We don't do loans here. Try again.");
+            blackjackStart(playerBank);
+        }
+        else if (betAmount == char())
+        {
+            printf("\nTry a number next time...");
+        }
+        else
+        {
+            startDraw(betAmount, playerBank);
+        }
+    }
+    else
+    {
+        printf("\n\nToo bad. You have nothing left.\nThanks for giving us ");
+        printf("all your money though! Want to see if you can do better next time? (Y,N): ");
+        scanf(" %c", &answer);
+        fflush(NULL);
+        
+        if (answer == 'Y' || answer == 'y')
+        {
+            printf("\n\n");
+            main();
+        }
+        else if (answer == 'N' || answer == 'n')
+        {
+            printf("\nDon't kid yourself. Come on; you know you want to.(Y,N): ");
+            scanf(" %c", &answer);
+            fflush(NULL);
+            
+            if (answer == 'Y' || answer == 'y')
+            {
+                printf("\n\n");
+                main();
+            }
+            else if (answer == 'N' || answer == 'n')
+            {
+                printf("\nFine. I know your kind though. They can't stay away for long...");
+                return 0;
+            }
+            else
+            {
+                printf("I'll take that as a yes...\n\n");
+                main();
+            }
+        }
+        else
+        {
+            printf("I'll take that as a yes...\n\n");
+            main();
+        }
+    }
+    return 0;
+}
+
+void startDraw(int betAmount, int playerBank)
+{
+
+    char gamble;
+    int score;
+    int split;
+
+    
+    srand(time(NULL));
+    
+    int w = rand() % 4;
+    int x = rand() % 13;
+    int y = rand() % 4;
+    int z = rand() % 13;
+
+    score  = cardDraw(cardDraw(0, w, x), y, z);
+    
+    if (score == 21)
+    {
+        printf("\nBlackjack! You won this round...");
+        playerBank = playerBank + betAmount;
+        blackjackStart(playerBank);
+    }
+    else if (x == z)
+    {
+        printf("You're at %i.", score);
+        printf("\nWould you like to split? (Y,N): ");
+        scanf(" %c", &gamble);
+        fflush(NULL);
+        if (gamble == 'Y' || gamble == 'y')
+        {
+            split1(w, x, betAmount, playerBank, score);
+        }
+        else if (gamble == 'N' || gamble == 'n')
+        {
+            split = 0;
+            printf("\nOkay, Hit or Stay? (H,S): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'H' || gamble == 'h')
+            {
+                draw(betAmount, playerBank, score, split);
+            }
+            else if (gamble == 'S' || gamble == 's')
+            {
+                dealerDraw(betAmount, playerBank, score);
+            }
+            else
+            {
+                printf("\nI guess you want to stay then...");
+                printf("\nYou sure? (Y,N): ");
+                scanf(" %c", &gamble);
+                fflush(NULL);
+                if (gamble == 'N' || gamble == 'n')
+                {
+                    draw(betAmount, playerBank, score, split);
+                }
+                else if (gamble == 'Y' || gamble == 'y')
+                {
+                    dealerDraw(betAmount, playerBank, score);
+                }
+                else
+                {
+                    printf("\nYep, you're staying then...\n");
+                    dealerDraw(betAmount, playerBank, score);
+                }
+            }
+        }
+        else
+        {
+            printf("\nI guess that's a no then...");
+            printf("\nYou sure? (Y,N): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'N' || gamble == 'n')
+            {
+              split1(w, x, betAmount, playerBank, score);
+              split2(y, z, betAmount, playerBank, score);
+            }
+            else if (gamble == 'Y' || gamble == 'y')
+            {
+                split = 0;
+                draw(betAmount, playerBank, score, split);
+            }
+            else
+            {
+                split = 0;
+                printf("\nYep, that's a no then...\n");
+                draw(betAmount, playerBank, score, split);
+            }
+        }
+    }
+    else
+    {
+        printf("You're at %i.", score);
+        printf("\nHit or Stay?(H,S): ");
+        scanf(" %c", &gamble);
+        fflush(NULL);
+        if (gamble == 'H' || gamble == 'h')
+        {
+            split = 0;
+            draw(betAmount, playerBank, score, split);
+        }
+        else if (gamble == 'S' || gamble == 's')
+        {
+            dealerDraw(betAmount, playerBank, score);
+        }
+        else
+        {
+            printf("\nI guess you want to stay then...");
+            printf("\nYou sure? (Y,N): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'N' || gamble == 'n')
+            {
+                split = 0;
+                draw(betAmount, playerBank, score, split);
+            }
+            else if (gamble == 'Y' || gamble == 'y')
+            {
+                dealerDraw(betAmount, playerBank, score);
+            }
+            else
+            {
+                printf("\nYep, you're staying then...\n");
+                dealerDraw(betAmount, playerBank, score);
+            }
+        }
+    }
+}
+
+int draw(int betAmount, int playerBank, int startScore, int split)
+{
+    
+    char gamble;
+    int score;
+    
+    srand(time(NULL));
+    int x = rand() % 4;
+	int y = rand() % 13;
+    
+    score = cardDraw(startScore, x, y);
+    
+    if (split == 0)
+    {
+        
+    if (score > 21)
+    {
+        printf("You're at %i.", score);
+        printf("\nBummer. You bust. ");
+        playerBank = playerBank - betAmount;
+        blackjackStart(playerBank);
+    }
+    else if (score == 21)
+    {
+        printf("\nBlackjack! You won this round...");
+        playerBank = playerBank + betAmount;
+        blackjackStart(playerBank);
+    }
+    else
+    {
+        printf("You're at %i.", score);
+        printf("\nHit or Stay?(H,S): ");
+        scanf(" %c", &gamble);
+        fflush(NULL);
+        if (gamble == 'H' || gamble == 'h')
+        {
+            draw(betAmount, playerBank, score, split);
+        }
+        else if (gamble == 'S' || gamble == 's')
+        {
+            dealerDraw(betAmount, playerBank, score);
+        }
+        else
+        {
+            printf("\nI guess you want to stay then...");
+            printf("\nYou sure? (Y,N): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'N' || gamble == 'n')
+            {
+                draw(betAmount, playerBank, score, split);
+            }
+            else if (gamble == 'Y' || gamble == 'y')
+            {
+                dealerDraw(betAmount, playerBank, score);
+            }
+            else
+            {
+                printf("\nYep, you're staying then...\n");
+                dealerDraw(betAmount, playerBank, score);
+            }
+        }
+    }
+    }
+    else if (split == 1)
+    {
+        if (score > 21)
+        {
+            printf("You're at %i.", score);
+            printf("\nBummer. You bust. ");
+            //playerBank = playerBank - betAmount;
+            //blackjackStart(playerBank);
+            //split2(suit2, cardValue2, betAmount, playerBank, 0);
+        }
+        else if (score == 21)
+        {
+            printf("\nBlackjack! You won this round...");
+            playerBank = playerBank + betAmount;
+            blackjackStart(playerBank);
+        }
+        else
+        {
+            printf("You're at %i.", score);
+            printf("\nHit or Stay?(H,S): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'H' || gamble == 'h')
+            {
+                draw(betAmount, playerBank, score, split);
+            }
+            else if (gamble == 'S' || gamble == 's')
+            {
+                dealerDraw(betAmount, playerBank, score);
+            }
+            else
+            {
+                printf("\nI guess you want to stay then...");
+                printf("\nYou sure? (Y,N): ");
+                scanf(" %c", &gamble);
+                fflush(NULL);
+                if (gamble == 'N' || gamble == 'n')
+                {
+                    draw(betAmount, playerBank, score, split);
+                }
+                else if (gamble == 'Y' || gamble == 'y')
+                {
+                    dealerDraw(betAmount, playerBank, score);
+                }
+                else
+                {
+                    printf("\nYep, you're staying then...\n");
+                    dealerDraw(betAmount, playerBank, score);
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+void dealerDraw(int betAmount, int playerBank, int score)
+{
+    int dealerScore= 0;
+    
+    srand(time(NULL));
+    
+    for (int i = 0 ; dealerScore < 17; i++)
+    {
+        
+        int x = rand() % 4;
+        int y = rand() % 13;
+        
+        dealerScore = cardDraw(dealerScore, x, y);
+    }
+    
+    if (dealerScore == 21)
+    {
+        printf("\nDealer has Blackjack. You lose this round.");
+        playerBank = playerBank - betAmount;
+        blackjackStart(playerBank);
+    }
+    else if (dealerScore > 21)
+    {
+        printf("\nDealer has %i and busts. You win.", dealerScore);
+        playerBank = playerBank + betAmount;
+        blackjackStart(playerBank);
+    }
+    else
+    {
+        printf("\nDealer has %i.", dealerScore);
+        winning(betAmount, playerBank, score, dealerScore);
+    }
+}
+
+void winning(int betAmount, int playerBank, int score, int dealerScore)
+{
+    if (dealerScore > score && dealerScore < 21)
+    {
+        printf("\nDealer wins. You lose.");
+        playerBank = playerBank - betAmount;
+        blackjackStart(playerBank);
+    }
+    else if (dealerScore == score)
+    {
+        printf("\nPush. A tie's kind of like kissing your sister.");
+        blackjackStart(playerBank);
+    }
+    else
+    {
+        printf("\nYou win. The dealer must be having a bad day.");
+        playerBank = playerBank + betAmount;
+        blackjackStart(playerBank);
+    }
+}
+
+int split1(int suit, int cardValue, int betAmount, int playerBank, int score)
+{
+
+    char gamble;
+    int split = 1; //Value to know whether to go to dealerDraw or splitDealerDraw or just the split number
+    
+    srand(time(NULL));
+    
+    int x = rand() % 4;
+	int y = rand() % 13;
+    
+    printf("\nFor the first hand you have...\n");
+    
+    score = cardDraw(cardDraw(0, suit, cardValue), x, y);
+    
+    
+    if (score > 21)
+    {
+        printf("\nBummer. You bust.");
+        playerBank = playerBank - betAmount;
+        return 0;
+    }
+    else if (score == 21)
+    {
+        printf("\nBlackjack! You won this round...");
+        playerBank = playerBank + betAmount;
+        return 0;
+    }
+    else
+    {
+        printf("You're at %i.", score);
+        printf("\nHit or Stay?(H,S): ");
+        scanf(" %c", &gamble);
+        fflush(NULL);
+        if (gamble == 'H' || gamble == 'h')
+        {
+            draw(betAmount, playerBank, score, split);
+        }
+        else if (gamble == 'S' || gamble == 's')
+        {
+            startDraw(betAmount, playerBank);
+        }
+        else
+        {
+            printf("\nI guess you want to stay then...");
+            printf("\nYou sure? (Y,N): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'N' || gamble == 'n')
+            {
+                draw(betAmount, playerBank, score, split);
+            }
+            else if (gamble == 'Y' || gamble == 'y')
+            {
+                return 0;
+            }
+            else
+            {
+                printf("\nYep, you're staying then...\n");
+                return 0;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+int split2(int suit, int cardValue, int betAmount, int playerBank, int score)
+{
+    score = 0;
+    char gamble;
+    int split = 2;
+    char numCards[13] = {'A','J','Q','K'};
+    numCards[4] = 2;
+    numCards[5] = 3;
+    numCards[6] = 4;
+    numCards[7] = 5;
+    numCards[8] = 6;
+    numCards[9] = 7;
+    numCards[10] = 8;
+    numCards[11] = 9;
+    numCards[12] = 10;
+    
+    srand(time(NULL));
+    int x = rand() % 4;
+	int y = rand() % 13;
+    
+    char suits[4];
+	suits[0] = ((char)0x03);
+	suits[1] = ((char)0x04);
+	suits[2] = ((char)0x05);
+	suits[3] = ((char)0x06);
+    
+    printf("\nFor the second hand you have...\n");
+    
+    score = cardDraw(cardDraw(0, suit, cardValue), x, y);
+    
+    if (score > 21)
+    {
+        printf("\nBummer. You bust. ");
+        playerBank = playerBank - betAmount;
+        blackjackStart(playerBank);
+    }
+    else if (score == 21)
+    {
+        printf("\nBlackjack! You won this round...");
+        playerBank = playerBank + betAmount;
+        blackjackStart(playerBank);
+    }
+    else
+    {
+        printf("You're at %i.", score);
+        printf("\nHit or Stay?(H,S): ");
+        scanf(" %c", &gamble);
+        fflush(NULL);
+        if (gamble == 'H' || gamble == 'h')
+        {
+            draw(betAmount, playerBank, score, split);
+        }
+        else if (gamble == 'S' || gamble == 's')
+        {
+            splitDealerDraw(betAmount, playerBank, score);
+        }
+        else
+        {
+            printf("\nI guess you want to stay then...");
+            printf("\nYou sure? (Y,N): ");
+            scanf(" %c", &gamble);
+            fflush(NULL);
+            if (gamble == 'N' || gamble == 'n')
+            {
+                draw(betAmount, playerBank, score, split);
+            }
+            else if (gamble == 'Y' || gamble == 'y')
+            {
+                splitDealerDraw(betAmount, playerBank, score);
+            }
+            else
+            {
+                printf("\nYep, you're staying then...\n");
+                dealerDraw(betAmount, playerBank, score);
+            }
+        }
+    }
+    
+    return 0;
+}
+
+
+void splitDealerDraw(int betAmount, int playerBank, int score)
+{
+    int dealerScore= 0;
+	
+	char numCards[13] = {'A','J','Q','K'};
+    
+    numCards[4] = 2;
+    numCards[5] = 3;
+    numCards[6] = 4;
+    numCards[7] = 5;
+    numCards[8] = 6;
+    numCards[9] = 7;
+    numCards[10] = 8;
+    numCards[11] = 9;
+    numCards[12] = 10;
+    
+    char suits[4];
+	suits[0] = ((char)0x03);
+	suits[1] = ((char)0x04);
+	suits[2] = ((char)0x05);
+	suits[3] = ((char)0x06);
+    
+    srand(time(NULL));
+    
+    for (int i = 0 ; dealerScore < 17; i++)
+    {
+        
+        int x = rand() % 4;
+        int y = rand() % 13;
+        
+        if (numCards[y] == 10)
+        {
+            printf(" _______ \n");
+            printf("/       |  \n");
+            printf("| 10    | \n");
+            printf("|       | \n");
+            printf("|   %c   | \n", suits[x]);
+            printf("|       | \n");
+            printf("|    10 | \n");
+            printf("|_______/ \n");
+            
+            dealerScore = dealerScore + 10;
+            
+        }
+        else if (numCards[y] == 'A')
+        {
+            printf(" _______ \n");
+            printf("/       |  \n");
+            printf("| %c     | \n", numCards[y]);
+            printf("|       | \n");
+            printf("|   %c   | \n", suits[x]);
+            printf("|       | \n");
+            printf("|     %c | \n", numCards[y]);
+            printf("|_______/ \n");
+            
+            if (dealerScore > 10)
+            {
+                dealerScore = dealerScore + 1;
+            }
+            else
+            {
+                dealerScore = dealerScore + 11;
+            }
+        }
+        else if (numCards[y] == 'J' || numCards[y] == 'Q' || numCards[y] == 'K')
+        {
+            printf(" _______ \n");
+            printf("/       |  \n");
+            printf("| %c     | \n", numCards[y]);
+            printf("|       | \n");
+            printf("|   %c   | \n", suits[x]);
+            printf("|       | \n");
+            printf("|     %c | \n", numCards[y]);
+            printf("|_______/ \n");
+            
+            dealerScore = dealerScore + 10;
+        }
+        else
+        {
+            printf(" _______ \n");
+            printf("/       |  \n");
+            printf("| %i     | \n", numCards[y]);
+            printf("|       | \n");
+            printf("|   %c   | \n", suits[x]);
+            printf("|       | \n");
+            printf("|     %i | \n", numCards[y]);
+            printf("|_______/ \n");
+            
+            dealerScore = dealerScore + numCards[y];
+        }
+    }
+    
+    if (dealerScore == 21)
+    {
+        printf("\nDealer has Blackjack. You lose this round.");
+        playerBank = playerBank - betAmount;
+        blackjackStart(playerBank);
+    }
+    else if (dealerScore > 21)
+    {
+        printf("\nDealer has %i and busts. You win.", dealerScore);
+        playerBank = playerBank + betAmount;
+        blackjackStart(playerBank);
+    }
+    else
+    {
+        printf("\nDealer has %i.", dealerScore);
+        winning(betAmount, playerBank, score, dealerScore);
+    }
+    
+}
+
+int cardDraw(int score, int x, int y)
+{
+    char numCards[13] = {'A','J','Q','K'};
+    numCards[4] = 2;
+    numCards[5] = 3;
+    numCards[6] = 4;
+    numCards[7] = 5;
+    numCards[8] = 6;
+    numCards[9] = 7;
+    numCards[10] = 8;
+    numCards[11] = 9;
+    numCards[12] = 10;
+    
+    char suits[4];
+	suits[0] = ((char)0x03);
+	suits[1] = ((char)0x04);
+	suits[2] = ((char)0x05);
+	suits[3] = ((char)0x06);
+    
+    if (numCards[y] == 10)
+    {
+        printf(" _______ \n");
+        printf("/       |  \n");
+        printf("| 10    | \n");
+        printf("|       | \n");
+        printf("|   %c   | \n", suits[x]);
+        printf("|       | \n");
+        printf("|    10 | \n");
+        printf("|_______/ \n");
+        
+        score = score + 10;
+        
+    }
+    else if (numCards[y] == 'A')
+    {
+        printf(" _______ \n");
+        printf("/       |  \n");
+        printf("| %c     | \n", numCards[y]);
+        printf("|       | \n");
+        printf("|   %c   | \n", suits[x]);
+        printf("|       | \n");
+        printf("|     %c | \n", numCards[y]);
+        printf("|_______/ \n");
+        
+        if (score > 10)
+        {
+            score = score + 1;
+        }
+        else
+        {
+            score = score + 11;
+        }
+    }
+    else if (numCards[y] == 'J' || numCards[y] == 'Q' || numCards[y] == 'K')
+    {
+        printf(" _______ \n");
+        printf("/       |  \n");
+        printf("| %c     | \n", numCards[y]);
+        printf("|       | \n");
+        printf("|   %c   | \n", suits[x]);
+        printf("|       | \n");
+        printf("|     %c | \n", numCards[y]);
+        printf("|_______/ \n");
+        
+        score = score + 10;
+    }
+    else
+    {
+        printf(" _______ \n");
+        printf("/       |  \n");
+        printf("| %i     | \n", numCards[y]);
+        printf("|       | \n");
+        printf("|   %c   | \n", suits[x]);
+        printf("|       | \n");
+        printf("|     %i | \n", numCards[y]);
+        printf("|_______/ \n");
+        
+        score = score + numCards[y];
+    }
+    
+    return score;
+}
